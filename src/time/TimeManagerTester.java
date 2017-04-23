@@ -7,7 +7,7 @@ public class TimeManagerTester {
 	static long savedMs = 0;
 	
 	public static void main(String[] args) {
-		ThreadTimeManagerSkip tmgr = new ThreadTimeManagerSkip(500);
+		ThreadTimeManagerRush tmgr = new ThreadTimeManagerRush(500);
 
 		Random rnd = new Random();
 		tmgr.start();
@@ -22,6 +22,8 @@ public class TimeManagerTester {
 			try {Thread.sleep(rnd.nextInt(500)+200);} catch (InterruptedException e) {} //simulation of "load"
 
 			tmgr.run();
+			
+			System.out.println(tmgr.getMissedMs());
 		}
 
 		tmgr.stop();
