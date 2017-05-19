@@ -15,6 +15,8 @@ public class ThreadTimeManagerRush {
 	private int iteration = 0;
 	private int timeBetweenTicks = 0;
 	private boolean stopped = true;
+	private boolean debug = false;
+	private boolean silence = false;
 	
 	public ThreadTimeManagerRush(int timeBetweenTicks) {
 		this.timeBetweenTicks = timeBetweenTicks;
@@ -38,26 +40,48 @@ public class ThreadTimeManagerRush {
 			iteration++;
 			long timeShift = getTimeShift(startTime, iteration, timeBetweenTicks);
 			totalTimeShift+=timeShift;
-			this.startTime-=timeShift;
+			this.startTime-=timeShift;	
 		}
 	}
 
+	public void disableDebug() {
+		debug = false;
+	}
+	
+	/**
+	 * 'debug' prints the amount of time waited after each "tick"
+	 */
+	public void enableDebug() {
+		debug = true;
+	}
+	
 	public void stop() {
 		stopped = true;
+	}
+	
+	/**
+	 * 'silence' silences all print statements
+	 */
+	public void silence() {
+		silence = true;
 	}
 	
 	private long getTimeShift(long startTime, int iteration, int timeBetweenTicks) {
 		long theoreticalCurrentTime = startTime+(iteration*timeBetweenTicks);
 		long excessTime = theoreticalCurrentTime-System.currentTimeMillis();
-
+		
+		if(debug && !silence) {
+			System.out.println("waited "+excessTime+"ms");
+		}
+		
 		if(excessTime>0) {
 			try {Thread.sleep(excessTime);} catch (InterruptedException e) {e.printStackTrace();}
 			return 0;
 		} else {
-			System.out.println("Can't keep up! Did the system time change, or is the server overloaded? Missed "+(-excessTime)+"ms");
+			if(!silence) {
+				System.out.println("Can't keep up! Did the system time change, or is the server overloaded? Missed "+(-excessTime)+"ms");
+			}
 			return excessTime;
 		}
-		
-		
 	}
 }

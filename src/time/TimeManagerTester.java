@@ -2,6 +2,7 @@ package time;
 
 import java.util.Random;
 
+@Deprecated
 public class TimeManagerTester {
 
 	static long savedMs = 0;

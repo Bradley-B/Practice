@@ -15,6 +15,8 @@ public class ThreadTimeManagerSkip {
 	private int timeBetweenTicks = 0;
 	private boolean stopped = true;
 	private int ticksSkipped = 0;
+	private boolean silence = false;
+	private boolean debug = false;
 	
 	public ThreadTimeManagerSkip(int timeBetweenTicks) {
 		this.timeBetweenTicks = timeBetweenTicks;
@@ -43,10 +45,33 @@ public class ThreadTimeManagerSkip {
 		stopped = true;
 	}
 	
+	public void disableDebug() {
+		debug = false;
+	}
+	
+	/**
+	 * 'debug' prints the amount of time waited after each "tick"
+	 */
+	public void enableDebug() {
+		debug = true;
+	}
+	
+	/**
+	 * 'silence' silences all print statements
+	 */
+	public void silence() {
+		silence = true;
+	}
+	
+	
 	private int getIterationCount(long startTime, int iteration, int timeBetweenTicks) {
 		long theoreticalCurrentTime = startTime+(iteration*timeBetweenTicks);
 		long excessTime = theoreticalCurrentTime-System.currentTimeMillis();
 
+		if(debug && !silence) {
+			System.out.println("waiting "+excessTime+"ms");
+		}
+		
 		if(excessTime>0) {
 			try {Thread.sleep(excessTime);} catch (InterruptedException e) {e.printStackTrace();}
 			return 1;
@@ -54,7 +79,9 @@ public class ThreadTimeManagerSkip {
 			int ticksToSkip = (int) Math.floor(-excessTime/timeBetweenTicks) + 1;
 			long adjTheoreticalCurrentTime = startTime+((iteration+ticksToSkip)*timeBetweenTicks);
 
-			System.out.println("Can't keep up! Did the system time change, or is the server overloaded? Running "+(-excessTime)+"ms behind, skipping "+(ticksToSkip)+" tick(s)");
+			if(!silence) {
+				System.out.println("Can't keep up! Did the system time change, or is the server overloaded? Running "+(-excessTime)+"ms behind, skipping "+(ticksToSkip)+" tick(s)");	
+			}
 			
 			try {Thread.sleep(adjTheoreticalCurrentTime-System.currentTimeMillis());} catch (InterruptedException e) {e.printStackTrace();}
 
