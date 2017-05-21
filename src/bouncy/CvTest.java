@@ -30,6 +30,7 @@ public class CvTest {
 	static JFrame frame = new JFrame();
 	static JLabel lbl = new JLabel();
 	static Mat mat = null;
+	static Mat overlay = null;
 	static Mat mat_temp = null;
 	static BufferedImage bi = null;
 	static Random rnd = new Random();
@@ -59,30 +60,35 @@ public class CvTest {
 		new CvTest();
 		
 		ThreadTimeManagerRush tmgr = new ThreadTimeManagerRush(20);
-		tmgr.silence();
+	//	tmgr.silence();
 		tmgr.start();
+		tmgr.enableDebug();
 		
-		bi = ImageIO.read(new File("C:/cool-beans.jpg"));
+		bi = ImageIO.read(new File("C:/Users/Bradley/Pictures/deadlyLaser.jpg"));
+		overlay = bufferedImage2Mat(bi);
 		
-		int textPieces = 50;
+		int textPieces = 20;
 		
 		String[] messages = new String[textPieces];
-		Arrays.fill(messages, "yes haha very good");
+		Arrays.fill(messages, "the sun is a deadly laser");
 		
 		TextItem[] textItems = new TextItem[textPieces] ;
+		ImageItem imageItem = new ImageItem(rnd.nextInt(matXSize-overlay.cols()), rnd.nextInt(matYSize-overlay.rows()),
+				Directions.values()[rnd.nextInt(2)+2], Directions.values()[rnd.nextInt(2)], Math.floor((rnd.nextDouble()*3)+1), Math.floor((rnd.nextDouble()*3)+1), overlay);
 		
 		for(int i=0;i<messages.length;i++) {
-			textItems[i] = new TextItem(rnd.nextInt(matXSize), rnd.nextInt(matYSize), Directions.values()[rnd.nextInt(2)+2], Directions.values()[rnd.nextInt(2)], messages[i]);		
+			textItems[i] = new TextItem(rnd.nextInt(matXSize), rnd.nextInt(matYSize), Directions.values()[rnd.nextInt(2)+2],
+					Directions.values()[rnd.nextInt(2)], messages[i], Core.FONT_HERSHEY_COMPLEX, rnd.nextDouble()*3, rnd.nextDouble()*3);		
 		}
 		
 		while(!Thread.interrupted()) {
 			mat = new Mat(matYSize, matXSize, CvType.CV_8UC3, new Scalar(0));
 			
-			for(int i=1;i<textItems.length-1;i++) {
-				textItems[i] = overlayText(messages[i], Core.FONT_HERSHEY_COMPLEX, textItems[i]);	
+			for(int i=0;i<textItems.length;i++) {
+				textItems[i] = overlayText(textItems[i]);	
 			}
 			
-		//	screenItems[0] = overlayImage(bi, screenItems[0]);
+			imageItem = overlayImage(imageItem);
 			
 			displayImage(frame, mat2BufferedImage(mat));
 			mat.release();
@@ -91,23 +97,58 @@ public class CvTest {
 		}
 	}
 
-	public static TextItem overlayImage(BufferedImage bi, TextItem screenItem) {
-		Size imageSize = new Size(bi.getWidth(), bi.getHeight());
-		TextItem newItem = moveText(imageSize, screenItem);
-		mat_temp = bufferedImage2Mat(bi);
+	public static ImageItem overlayImage(ImageItem item) {
+		ImageItem newItem = moveImage(item);
 		
 		try {
-			mat_temp.copyTo(mat.submat(new Rect(newItem.xcord, newItem.ycord, mat_temp.cols(), mat_temp.rows())));
+			//System.out.println("currently overlaying image at "+newItem.xcord+", "+newItem.ycord);
+			newItem.image.copyTo(mat.submat(new Rect(newItem.xcord, newItem.ycord, newItem.image.cols(), newItem.image.rows())));
 		} catch (Exception e) {}
 		
 		return newItem;
 	}
 	
-	public static TextItem overlayText(String text, int font, TextItem item) {
-		Size textSize = Imgproc.getTextSize(text, font, 1, 2, new int[] {0});
+	public static TextItem overlayText(TextItem item) {
+		Size textSize = Imgproc.getTextSize(item.text, item.font, 1, 2, new int[] {0});
 		TextItem newItem = moveText(textSize, item);
-		Imgproc.putText(mat, text, new Point(newItem.xcord, newItem.ycord), font, 1.0, new Scalar(rnd.nextInt(255), rnd.nextInt(255), rnd.nextInt(255)), 2);
+		Imgproc.putText(mat, item.text, new Point(newItem.xcord, newItem.ycord), item.font, 1.0, new Scalar(rnd.nextInt(255), rnd.nextInt(255), rnd.nextInt(255)), 2);
 		return newItem;
+	}
+	
+	public static ImageItem moveImage(ImageItem item) {
+		int tempXMovement = 0;
+		int tempYMovement = 0;
+		Directions tempXDirection = null;
+		Directions tempYDirection = null;
+		Size size = new Size(item.image.cols(), item.image.rows());
+		
+		if(item.ycord+size.height>=matYSize-item.yModifier) { //needs to switch to up
+			tempYDirection = Directions.UP;
+		} else if(item.ycord<=item.yModifier+1) { //needs to switch to down
+			tempYDirection = Directions.DOWN;
+		} else {
+			tempYDirection = item.yDirection;
+		}
+		if(tempYDirection.equals(Directions.UP)) {
+			tempYMovement+=-2*item.yModifier;
+		} else if(tempYDirection.equals(Directions.DOWN)){
+			tempYMovement+=2*item.yModifier;
+		}
+		
+		if((item.xcord+size.width+item.xModifier+1>=matXSize)) { //needs to switch to left
+			tempXDirection = Directions.LEFT;
+		} else if(item.xcord<=item.xModifier-1) {	//needs to switch to right
+			tempXDirection = Directions.RIGHT; 
+		} else {
+			tempXDirection = item.xDirection;
+		}
+		if(tempXDirection.equals(Directions.LEFT)) {
+			tempXMovement+=-2*item.xModifier;
+		} else if(tempXDirection.equals(Directions.RIGHT)){
+			tempXMovement+=2*item.xModifier;
+		}
+		
+		return new ImageItem(item.xcord+tempXMovement, item.ycord+tempYMovement, tempXDirection, tempYDirection, item.xModifier, item.yModifier, item.image);
 	}
 	
 	public static TextItem moveText(Size size, TextItem item) {
@@ -121,12 +162,12 @@ public class CvTest {
 		} else if(item.ycord-(size.height)<=0) { //needs to switch to down
 			tempYDirection = Directions.DOWN;
 		} else {
-			tempYDirection = item.getDirection()[1];
+			tempYDirection = item.yDirection;
 		}
 		if(tempYDirection.equals(Directions.UP)) {
-			tempYMovement+=-2;
+			tempYMovement+=-2*item.yModifier;
 		} else if(tempYDirection.equals(Directions.DOWN)){
-			tempYMovement+=2;
+			tempYMovement+=2*item.yModifier;
 		}
 		
 		if((item.xcord+size.width>=matXSize)) { //needs to switch to left
@@ -134,15 +175,16 @@ public class CvTest {
 		} else if(item.xcord<=0) {	//needs to switch to right
 			tempXDirection = Directions.RIGHT; 
 		} else {
-			tempXDirection = item.getDirection()[0];
+			tempXDirection = item.xDirection;
 		}
 		if(tempXDirection.equals(Directions.LEFT)) {
-			tempXMovement+=-2;
+			tempXMovement+=-2*item.xModifier;
 		} else if(tempXDirection.equals(Directions.RIGHT)){
-			tempXMovement+=2;
+			tempXMovement+=2*item.xModifier;
 		}
 		
-		return new TextItem(item.xcord+tempXMovement, item.ycord+tempYMovement, tempXDirection, tempYDirection, item.text);	
+		return new TextItem(item.xcord+tempXMovement, item.ycord+tempYMovement, tempXDirection, tempYDirection,
+				item.text, item.font, item.xModifier, item.yModifier);	
 	}
 	
 	public static void drawEllipse(Mat m, int xCenter, int yCenter, int width, int height, int rotation, Scalar color, int thickness) {

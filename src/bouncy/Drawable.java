@@ -7,14 +7,16 @@ public class Drawable {
 	public Directions yDirection = null;
 	public int xcord = 0;
 	public int ycord = 0;
-	public double xDirectionModifier = 0;
-	public double yDirectionModifier = 0;
+	public double xModifier = 0;
+	public double yModifier = 0;
 	
-	public Drawable(int xcord, int ycord, Directions xDirection, Directions yDirection) {
+	public Drawable(int xcord, int ycord, Directions xDirection, Directions yDirection, double xModifier, double yModifier) {
 		this.xcord = xcord;
 		this.ycord = ycord;
 		this.xDirection = xDirection;
 		this.yDirection = yDirection;
+		this.xModifier = xModifier;
+		this.yModifier = yModifier;
 	}
 	
 	public void setCords(int xcord, int ycord) {
@@ -27,17 +29,8 @@ public class Drawable {
 		this.yDirection = yDirection;
 	}
 	
-	public Directions[] getDirection() {
-		return new Directions[] {xDirection, yDirection};
-	}
-	
 	public void setModifiers(double xDirectionModifier, double yDirectionModifier) {
-		this.xDirectionModifier = xDirectionModifier;
-		this.yDirectionModifier = yDirectionModifier;
+		this.xModifier = xDirectionModifier;
+		this.yModifier = yDirectionModifier;
 	}
-	
-	public double[] getModifiers() {
-		return new double[] {xDirectionModifier, yDirectionModifier};
-	}
-	
 }

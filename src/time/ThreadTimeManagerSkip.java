@@ -68,11 +68,13 @@ public class ThreadTimeManagerSkip {
 		long theoreticalCurrentTime = startTime+(iteration*timeBetweenTicks);
 		long excessTime = theoreticalCurrentTime-System.currentTimeMillis();
 
-		if(debug && !silence) {
+		if(debug && !silence && excessTime>0) {
 			System.out.println("waiting "+excessTime+"ms");
+		} else if(debug && !silence && excessTime==0) {
+			System.out.println("did nothing");
 		}
 		
-		if(excessTime>0) {
+		if(excessTime>=0) {
 			try {Thread.sleep(excessTime);} catch (InterruptedException e) {e.printStackTrace();}
 			return 1;
 		} else {
