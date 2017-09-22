@@ -1,73 +1,71 @@
 package sort;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import java.util.Random;
-import java.util.concurrent.CountDownLatch;
+import java.util.stream.Collectors;
 public class SleepSort {
 	
 	/**
-	 * NOTE: THIS SORT <u>WILL</u> SEND YOU TO HELL FOR BEING A TERRIBLE PERSON.
-	 * Currently does not work, sometimes a number doesn't get added to arrOutput.
+	 * Best sort algorithm
 	 * 
 	 * @param args
 	 * @throws InterruptedException
 	 */
 	public static void main(String[] args) throws InterruptedException {
-		int arrayLength = 10;
-		int maxIndexValue = 10;
-		int indexTimeDelay = 1;
+		int arrayLength = 100;
+		int maxIndexValue = 1000;
+		int indexTimeDelay = 20;
 		
 		Random rnd = new Random();
 		int[] arrInput = new int[arrayLength]; //make the array
-		ArrayList<Integer> arrOutput = new ArrayList<Integer>(); 
+		List<Integer> arrOutput = Collections.synchronizedList(new ArrayList<Integer>()); 
 		ArrayList<Thread> threads = new ArrayList<Thread>();
 		
-		System.out.println("Starting array is... ");
-		for(int i=0;i<arrInput.length;i++) { //fill the array
-			int num = 0;
-			while(num==0) {
-				num = rnd.nextInt(maxIndexValue);
-			}
+		System.out.println("Starting array is: ");
+		for(int i=0;i<arrInput.length;i++) { //fill the array with values. These are just garbage random values, in a real use case obviously skip this step.
+			int num = rnd.nextInt(maxIndexValue)+1;
 			arrInput[i] = num;
 			System.out.print(num + " ");
 		}
 		
-		System.out.println("\n\n"+"Preparing sort...");
-		for(final int number : arrInput) { //setup array sorting
+		System.out.println("\n\n"+"Preparing sort");
+		for(final int number : arrInput) { //create threads and add them to a list
 	
 			Thread thread = new Thread(() -> {	
-				System.out.println("starting wait for thread with value "+number);	
 				try {Thread.sleep((number*indexTimeDelay));} catch (Exception e) {e.printStackTrace();}
-				
-				
-				//System.out.println("added value to array "+number);
 				arrOutput.add(number);
 			});
 			threads.add(thread);
 		}
 		
-		System.out.println("Sorting...");
-		for(Thread thread : threads) { //start threads, run sort
+		System.out.print("Sorting");
+		for(Thread thread : threads) { //start threads, running the sort
 			thread.start();
 		}
 		
-		//Thread.sleep((arrayLength*indexTimeDelay)+100); //allow time for sorting array
-		
-		while(arrOutput.size()!=arrayLength) { //wait for array to be sorted
-			Thread.sleep(maxIndexValue*indexTimeDelay);
-			
-			System.out.print("array value: ");  //print current array
-			for(int i : arrOutput) {
-				System.out.print(arrOutput.get(i)+" ");
+		int arrOutputLength = 0;
+		while(arrOutput.size()!=arrayLength && !Thread.interrupted()) { //wait for array to be sorted
+			Thread.sleep(100);
+			if(arrOutput.size()!=arrOutputLength) {
+				System.out.print(".");
+				arrOutputLength = arrOutput.size();
 			}
-			System.out.println();
-				
 		}
 		
-		System.out.println("\nSorted array is... ");
+		System.out.println("\n\nComplete! Sorted array is");
 		for(int i=0;i<arrOutput.size();i++) { //print the sorted array
 			System.out.print(arrOutput.get(i) + " ");
 		}
-	}
 
+		System.out.println("\n\nVerifying sort is correct");
+		if(arrOutput.stream().sorted().collect(Collectors.toList()).equals(arrOutput)) {
+			System.out.println("Success!");
+		} else {
+			System.err.println("Failed. :(");
+		}
+		
+	}
+	
 }
