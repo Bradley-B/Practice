@@ -24,6 +24,7 @@ import org.opencv.core.RotatedRect;
 import org.opencv.core.Scalar;
 import org.opencv.core.Size;
 import org.opencv.imgproc.Imgproc;
+import org.opencv.videoio.VideoCapture;
 
 
 public class CvTest {
@@ -59,18 +60,20 @@ public class CvTest {
 		
 		new CvTest();
 		
-		ThreadTimeManagerRush tmgr = new ThreadTimeManagerRush(20);
+		VideoCapture camera = new VideoCapture(0);
+		
+		ThreadTimeManagerRush tmgr = new ThreadTimeManagerRush(50);
 	//	tmgr.silence();
 		tmgr.start();
-		tmgr.enableDebug();
+	//	tmgr.enableDebug();
 		
 		bi = ImageIO.read(new File("C:/Users/Bradley/Pictures/deadlyLaser.jpg"));
 		overlay = bufferedImage2Mat(bi);
 		
-		int textPieces = 20;
+		int textPieces = 50;
 		
 		String[] messages = new String[textPieces];
-		Arrays.fill(messages, "the sun is a deadly laser");
+		Arrays.fill(messages, "hey");
 		
 		TextItem[] textItems = new TextItem[textPieces] ;
 		ImageItem imageItem = new ImageItem(rnd.nextInt(matXSize-overlay.cols()), rnd.nextInt(matYSize-overlay.rows()),
@@ -83,6 +86,9 @@ public class CvTest {
 		
 		while(!Thread.interrupted()) {
 			mat = new Mat(matYSize, matXSize, CvType.CV_8UC3, new Scalar(0));
+			camera.read(mat);
+			Imgproc.resize(mat, mat, new Size(matXSize, matYSize), 0, 0, Imgproc.INTER_CUBIC);
+			Core.flip(mat, mat, 1);
 			
 			for(int i=0;i<textItems.length;i++) {
 				textItems[i] = overlayText(textItems[i]);	

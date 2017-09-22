@@ -1,0 +1,14 @@
+MO,BR,NYTVR,HVR,Smokey,Buckeye,Monty,Palmetto,CentralNY
+MO,BR,Monty,HVR,Buckeye,CentralNY
+BR,MO,Monty,HVR
+MO,BR,Buckeye,Smokey,HVR,Monty
+MO,BR,Monty,HVR,Smokey,Buckeye,CentralNY,Palmetto
+BR,NYTVR,MO,Monty,Buckeye
+MO,BR,HVR,Buckeye,Monty,CentralNY
+BR,MO,HVR,Smokey,Buckeye,Monty
+MO,BR,Monty,HVR,Palmetto,Smokey,Buckeye,CentralNY,NYTVR
+MO,BR,CentralNY,Smokey,Buckeye
+MO,BR,Monty,Buckeye,HVR,CentralNY
+MO,BR,HVR,Monty,Buckeye,NYTVR,Smokey,CentralNY,Palmetto
+MO,BR,Monty
+MO,BR,Monty,Buckeye
